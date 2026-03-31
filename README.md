@@ -4,7 +4,7 @@ Interactive Streamlit dashboard for MangaDex metadata: Sentiment analysis, trend
 
 ![Python](https://img.shields.io/badge/Python-3.8+-blue) ![Streamlit](https://img.shields.io/badge/Streamlit-1.32+-red) ![License](https://img.shields.io/badge/License-MIT-green) 
 
-**Live Demo:** [manga-dashboard.streamlit.app](https://your-link-here.streamlit.app)
+**Live Demo:** [manga-dashboard.streamlit.app](https://manga-dashboard.streamlit.app/)
 
 ---
 
