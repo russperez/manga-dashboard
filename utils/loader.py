@@ -15,6 +15,7 @@ nltk.download('vader_lexicon', quiet=True)
 @st.cache_data
 def load_data():
     df = pd.read_csv('data/mangadex_final.csv')
+    df = df.convert_dtypes(dtype_backend='numpy_nullable')
 
     # text cleaning (same as notebook)
     df['text'] = (df['title'].fillna('') + ' ' + df['description'].fillna('')).str.lower()
@@ -29,9 +30,9 @@ def load_data():
     # sentiment
     if 'sentiment_score' not in df.columns:
         sia = SentimentIntensityAnalyzer()
-        df['sentiment_score'] = df['description'].astype(str).apply(
-            lambda x: sia.polarity_scores(x)['compound']
-        )
+        df['sentiment_score'] = df['description'].apply(
+    lambda x: sia.polarity_scores(str(x) if x is not None else '')['compound']
+)
 
     # encoders
     le_status = LabelEncoder()
