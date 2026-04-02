@@ -9,15 +9,18 @@ from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from nltk.sentiment import SentimentIntensityAnalyzer
 import nltk
-
 nltk.download('vader_lexicon', quiet=True)
 
 @st.cache_data
 def load_data():
-    df = pd.read_csv('data/mangadex_final.csv')
-    df = df.convert_dtypes(dtype_backend='numpy_nullable')
+    df = pd.read_csv('data/mangadex_final.csv', dtype_backend='numpy_nullable')
+    
+    # force all object/string columns to native Python str
+    for col in df.columns:
+        if df[col].dtype == object or str(df[col].dtype) in ('string', 'StringDtype'):
+            df[col] = df[col].astype(str).where(df[col].notna(), other='')
 
-    # text cleaning (same as notebook)
+    # text cleaning
     df['text'] = (df['title'].fillna('') + ' ' + df['description'].fillna('')).str.lower()
     df['text_clean'] = df['text'].apply(
         lambda x: re.sub(r'[{}0-9]'.format(re.escape(string.punctuation)), ' ', x)
@@ -28,11 +31,12 @@ def load_data():
     )
 
     # sentiment
-    if 'sentiment_score' not in df.columns:
-        sia = SentimentIntensityAnalyzer()
-        df['sentiment_score'] = df['description'].apply(
-    lambda x: sia.polarity_scores(str(x) if x is not None else '')['compound']
-)
+    sia = SentimentIntensityAnalyzer()
+    df['sentiment_score'] = df['description'].apply(
+        lambda x: sia.polarity_scores(
+            '' if (x is None or x != x) else x.encode('utf-8', errors='ignore').decode('utf-8')
+        )['compound']
+    )
 
     # encoders
     le_status = LabelEncoder()
@@ -47,13 +51,11 @@ def load_data():
 
     return df, le_demo
 
-
 @st.cache_resource
 def get_tfidf_matrix(df):
     tfidf = TfidfVectorizer(max_features=500, stop_words='english')
     matrix = tfidf.fit_transform(df['text_clean'])
     return tfidf, matrix
-
 
 @st.cache_data
 def get_clusters(_df):
